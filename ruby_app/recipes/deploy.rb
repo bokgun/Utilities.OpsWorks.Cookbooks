@@ -102,7 +102,7 @@ node[:deploy].each do |application, _|
 					bash "bundle install #{application}" do
 						cwd release_path
 						code <<-EOH
-              sudo -u deploy #{node[:deploy][application][:bundle_command]} install --path #{node[:deploy][application][:home]}/.bundler/#{application} --without=#{node[:deploy][application][:ignore_bundler_groups].join(' ')}
+              sudo #{node[:deploy][application][:bundle_command]} install
 						EOH
 						action :run
 					end
