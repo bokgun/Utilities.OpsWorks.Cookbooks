@@ -1,13 +1,7 @@
-bash "update apt-get" do
+node[:deploy].each do |application, _|
+	bash "update apt-get" do
 	code <<-EOH
 							sudo apt-get update
-	EOH
-	action :run
-end
-
-bash "install nginx" do
-	code <<-EOH
-							sudo apt-get install nginx
 	EOH
 	action :run
 end
@@ -31,4 +25,5 @@ bash "install sqlite3" do
 							sudo apt-get install libsqlite3-dev
 	EOH
 	action :run
+end
 end
