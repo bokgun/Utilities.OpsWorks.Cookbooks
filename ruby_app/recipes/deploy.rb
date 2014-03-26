@@ -97,7 +97,7 @@ node[:deploy].each do |application, _|
 			before_symlink do
 				if node[:deploy][application][:auto_bundle_on_deploy]
 					Chef::Log.info("Gemfile detected. Running bundle install.")
-					Chef::Log.info("sudo su deploy -c 'cd #{release_path} && #{node[:sinatra][application][:bundle_command]} install --path #{node[:deploy][application][:home]}/.bundler/#{application} --without=#{node[:deploy][application][:ignore_bundler_groups].join(' ')}'")
+					Chef::Log.info("sudo su deploy -c 'cd #{release_path} && #{node[:deploy][application][:bundle_command]} install --path #{node[:deploy][application][:home]}/.bundler/#{application} --without=#{node[:deploy][application][:ignore_bundler_groups].join(' ')}'")
 
 					bash "bundle install #{application}" do
 						cwd release_path
