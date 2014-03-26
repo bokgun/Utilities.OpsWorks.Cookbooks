@@ -100,6 +100,7 @@ node[:deploy].each do |application, _|
 					Chef::Log.info("sudo su deploy -c 'cd #{release_path} && #{node[:sinatra][application][:bundle_command]} install --path #{node[:deploy][application][:home]}/.bundler/#{application} --without=#{node[:deploy][application][:ignore_bundler_groups].join(' ')}'")
 
 					bash "bundle install #{application}" do
+						cwd release_path
 						code <<-EOH
               sudo -u deploy #{node[:deploy][application][:bundle_command]} install --path #{node[:deploy][application][:home]}/.bundler/#{application} --without=#{node[:deploy][application][:ignore_bundler_groups].join(' ')}
 						EOH
