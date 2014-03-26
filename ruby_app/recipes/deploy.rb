@@ -123,26 +123,6 @@ node[:deploy].each do |application, _|
 		end
 	end
 
-	if node[:deploy][application][:application_type] == 'ruby_app' # && node[:opsworks][:instance][:layers].include?('rails-app')
-		case node[:opsworks][:rack_stack][:name]
-
-			when 'apache_passenger'
-				passenger_web_app do
-					application   application
-					deploy        node[:deploy][application]
-				end
-
-			when 'nginx_unicorn'
-				unicorn_web_app do
-					application   application
-					deploy        node[:deploy][application]
-				end
-
-			else
-				raise "Unsupported Rack Stack #{node[:opsworks][:rack_stack][:name]}"
-		end
-	end
-
 	template "/etc/logrotate.d/opsworks_app_#{application}" do
 		backup    false
 		source    "logrotate.erb"
@@ -155,7 +135,7 @@ node[:deploy].each do |application, _|
 
 	execute "restart app #{application}" do
 		cwd       node[:deploy][application][:current_path]
-		command   node[:opsworks][:rack_stack][:restart_command]
+		command   node[:opsworks][:rack_stack][:start_command]
 		action    :run
 	end
 end
