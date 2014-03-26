@@ -60,7 +60,7 @@ node[:deploy].each do |application, _|
 		end
 	end
 
-	Chef::Log.debug("[ruby_app] Running 'deploy' operation and will restart with `echo 'sinatra restart' && sleep #{node[:deploy][application][:sleep_before_restart]} && #{node[:sinatra][application][:restart_command]}`")
+	Chef::Log.debug("[ruby_app] Running 'deploy' operation and will restart and sleep")
 
 	# setup deployment & checkout
 	if node[:deploy][application][:scm]
