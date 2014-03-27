@@ -138,4 +138,14 @@ node[:deploy].each do |application, _|
 		command   node[:opsworks][:rack_stack][:start_command]
 		action    :run
 	end
+
+	if !system("grep etl_app /etc/monit/monitrc")
+		bash "Adding etl to monit" do
+			code <<-EOH
+			sudo echo "check process etl_app with pidfile /srv/www/etl_app/current/run/etl.pid
+start program = "/srv/www/etl_app/current/bin/etl -d -P /srv/www/etl_app/current/run/etl.pid -l /srv/www/etl_app/current/shared/log/etl.log"
+stop program = "/srv/www/etl_app/current/bin/etl stop"" >> /etc/monit/monitrc
+			EOH
+		end
+	end
 end
