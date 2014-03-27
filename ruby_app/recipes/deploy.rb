@@ -144,7 +144,7 @@ node[:deploy].each do |application, _|
 			code <<-EOH
 			sudo echo "check process etl_app with pidfile /srv/www/etl_app/current/run/etl.pid
 start program = "/srv/www/etl_app/current/bin/etl -d -P /srv/www/etl_app/current/run/etl.pid -l /srv/www/etl_app/current/shared/log/etl.log"
-stop program = "/srv/www/etl_app/current/bin/etl stop"" >> /etc/monit/monitrc
+stop program = "/srv/www/etl_app/current/bin/etl -k -P /srv/www/etl_app/current/run/etl.pid"" >> /etc/monit/monitrc
 			EOH
 		end
 	end
