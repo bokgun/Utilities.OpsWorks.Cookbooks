@@ -147,5 +147,11 @@ start program = "/srv/www/etl_app/current/bin/etl -d -P /srv/www/etl_app/current
 stop program = "/srv/www/etl_app/current/bin/etl -k -P /srv/www/etl_app/current/run/etl.pid"' >> /etc/monit/monitrc
 			EOH
 		end
+
+		bash "Restarting monit" do
+			code <<-EOH
+				sudo /etc/init.d/monit restart
+			EOH
+		end
 	end
 end
