@@ -152,9 +152,10 @@ node[:deploy].each do |application, _|
 						sleep $DELAY
 				else
 					echo 'No process running, starting app'
-					let STATUS=0;
+					STATUS=0;
 				fi
 			done
+
 		EOH
 		action :run
 	end
