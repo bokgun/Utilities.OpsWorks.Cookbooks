@@ -133,12 +133,6 @@ node[:deploy].each do |application, _|
 		variables( :log_dirs => ["#{node[:deploy][application][:deploy_to]}/shared/log" ] )
 	end
 
-	# execute "restart app #{application}" do
-	# 	cwd       node[:deploy][application][:current_path]
-	# 	command   node[:opsworks][:rack_stack][:start_command]
-	# 	action    :run
-	# end
-
 	bash "Stopping #{application} for restart" do
 		code node[:opsworks][:rack_stack][:stop_command]
 		action :run
@@ -163,10 +157,17 @@ node[:deploy].each do |application, _|
 		EOH
 		action :run
 	end
+	#
+	# bash "Starting up #{application}" do
+	# 	code node[:opsworks][:rack_stack][:start_command]
+	# 	action :run
+	# end
 
-	bash "Starting up #{application}" do
-		code node[:opsworks][:rack_stack][:start_command]
-		action :run
+
+	execute "Starting app #{application}" do
+		cwd       node[:deploy][application][:current_path]
+		command   node[:opsworks][:rack_stack][:start_command]
+		action    :run
 	end
 
 
