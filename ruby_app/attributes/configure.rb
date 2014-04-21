@@ -8,3 +8,5 @@ default[:opsworks][:rack_stack][:start_command] = "bin/#{application} -d -P run/
 default[:opsworks][:rack_stack][:stop_command] = "./bin/#{application} -k -P /var/run/#{application}.pid"
 default[:opsworks][:rack_stack][:bundle_command] = "/usr/local/bin/bundle" # "/usr/local/rvm/gems/ruby-1.9.3-p327@global/bin/bundle"
 
+end
+
