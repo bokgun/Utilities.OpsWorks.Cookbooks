@@ -133,18 +133,49 @@ node[:deploy].each do |application, _|
 		variables( :log_dirs => ["#{node[:deploy][application][:deploy_to]}/shared/log" ] )
 	end
 
-	execute "restart app #{application}" do
-		cwd       node[:deploy][application][:current_path]
-		command   node[:opsworks][:rack_stack][:start_command]
-		action    :run
+	# execute "restart app #{application}" do
+	# 	cwd       node[:deploy][application][:current_path]
+	# 	command   node[:opsworks][:rack_stack][:start_command]
+	# 	action    :run
+	# end
+
+	bash "Stopping #{application} for restart" do
+		code node[:opsworks][:rack_stack][:stop_command]
+		action :run
 	end
 
-	if !system("grep etl_app /etc/monit/monitrc")
-		bash "Adding etl to monit" do
+	bash "Checking for running instance of #{application}" do
+		code <<-EOH
+			SERVICE='bin/#{application}';
+			STATUS=1;
+			DELAY=5;
+			echo 'Checking for running process'
+			while [ "$STATUS" -eq "1" ]
+			do
+				if ps ax | grep -v grep | grep $SERVICE > /dev/null
+				then
+						sleep $DELAY
+				else
+					echo 'No process running, starting app'
+					let STATUS=0;
+				fi
+			done
+		EOH
+		action :run
+	end
+
+	bash "Starting up #{application}" do
+		code node[:opsworks][:rack_stack][:start_command]
+		action :run
+	end
+
+
+	if !system("grep #{application} /etc/monit/monitrc")
+		bash "Adding #{application} to monit" do
 			code <<-EOH
-			sudo echo 'check process etl_app with pidfile /srv/www/etl_app/current/run/etl.pid
-start program = "/srv/www/etl_app/current/bin/etl -d -P /srv/www/etl_app/current/run/etl.pid -l /srv/www/etl_app/current/shared/log/etl.log"
-stop program = "/srv/www/etl_app/current/bin/etl -k -P /srv/www/etl_app/current/run/etl.pid"' >> /etc/monit/monitrc
+			sudo echo 'check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
+start program = "/srv/www/#{application}/current/bin/#{application} -d -P /srv/www/#{application}/current/run/#{application}.pid -l /srv/www/#{application}/current/shared/log#{application}.log"
+stop program = "/srv/www/#{application}/current/bin/#{application}-k -P /srv/www/#{application}/current/run/#{application}.pid"' >> /etc/monit/monitrc
 			EOH
 		end
 
