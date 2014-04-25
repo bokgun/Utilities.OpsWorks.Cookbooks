@@ -176,8 +176,8 @@ node[:deploy].each do |application, _|
 		bash "Adding #{application} to monit" do
 			code <<-EOH
 			sudo echo 'check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
-start program = "/srv/www/#{application}/current/bin/#{application} -d -P /srv/www/#{application}/current/run/#{application}.pid -l /srv/www/#{application}/current/shared/log#{application}.log"
-stop program = "/srv/www/#{application}/current/bin/#{application}-k -P /srv/www/#{application}/current/run/#{application}.pid"' >> /etc/monit/monitrc
+start program = "/srv/www/#{application}/current/bin/#{application} -d -P /srv/www/#{application}/current/run/#{application}.pid -l /srv/www/#{application}/current/shared/log/#{application}.log"
+stop program = "/srv/www/#{application}/current/bin/#{application} -k -P /srv/www/#{application}/current/run/#{application}.pid"' >> /etc/monit/monitrc
 			EOH
 		end
 
