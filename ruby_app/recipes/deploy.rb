@@ -139,32 +139,31 @@ node[:deploy].each do |application, _|
 		action :run
 	end
 
-	bash "Checking for running instance of #{application}" do
-		code <<-EOH
-			SERVICE='bin/#{application}';
-			STATUS=1;
-			DELAY=5;
-			echo 'Checking for running process'
-			while [ "$STATUS" -eq "1" ]
-			do
-				if ps ax | grep -v grep | grep $SERVICE > /dev/null
-				then
-						sleep $DELAY
-				else
-					echo 'No process running, starting app'
-					STATUS=0;
-				fi
-			done
-
-		EOH
-		action :run
-	end
+	# bash "Checking for running instance of #{application}" do
+	# 	code <<-EOH
+	# 		SERVICE='bin/#{application}';
+	# 		STATUS=1;
+	# 		DELAY=5;
+	# 		echo 'Checking for running process'
+	# 		while [ "$STATUS" -eq "1" ]
+	# 		do
+	# 			if ps ax | grep -v grep | grep $SERVICE > /dev/null
+	# 			then
+	# 					if $SLEPT -lt 60
+	# 						sleep $DELAY
+	# 						SLEPT+=$DELAY
+	# 					else
+	# 						STATUS=0
+	# 					fi
+	# 			else
+	# 				echo 'No process running, starting app'
+	# 				STATUS=0;
+	# 			fi
+	# 		done
 	#
-	# bash "Starting up #{application}" do
-	# 	code node[:opsworks][:rack_stack][:start_command]
+	# 	EOH
 	# 	action :run
 	# end
-
 
 	execute "Starting app #{application}" do
 		cwd       node[:deploy][application][:current_path]
