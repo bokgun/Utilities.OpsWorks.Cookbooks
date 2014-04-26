@@ -135,7 +135,7 @@ node[:deploy].each do |application, _|
 
 	bash "Stopping #{application} for restart" do
 		cwd       node[:deploy][application][:current_path]
-		code node[:opsworks][:rack_stack][:stop_command]
+		command 	node[:opsworks][:rack_stack][:stop_command]
 		action :run
 	end
 
