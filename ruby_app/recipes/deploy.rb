@@ -147,7 +147,6 @@ node[:deploy].each do |application, _|
 			SLEPT=0;
 			cd #{node[:deploy][application][:current_path]}
 		  #{node[:opsworks][:rack_stack][:stop_command]}
-			sudo rm #{node[:opsworks][:rack_stack][:pid]}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
 			do
@@ -170,13 +169,13 @@ node[:deploy].each do |application, _|
 		action :run
 	end
 
-	if system("grep #{application} /etc/monit/monitrc")
+	if !system("grep #{application} /etc/monit/monitrc")
 		execute "Starting app #{application}" do
 			cwd       node[:deploy][application][:current_path]
 			command   node[:opsworks][:rack_stack][:start_command]
 			action    :run
 		end
-	else
+
 		bash "Adding #{application} to monit" do
 			code <<-EOH
 			sudo echo 'check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
