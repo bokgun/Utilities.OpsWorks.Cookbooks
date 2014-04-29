@@ -145,11 +145,12 @@ node[:deploy].each do |application, _|
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-		  sudo #{node[:opsworks][:rack_stack][:stop_command]}
+			cd /srv/www/#{application}/current
+		  #{node[:opsworks][:rack_stack][:stop_command]}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
 			do
-				if ps ax | grep -v grep | grep $SERVICE > /dev/null
+				if ps aux | grep -v grep | grep $SERVICE > /dev/null
 				then
 						if $SLEPT -lt 120
 						then
