@@ -145,7 +145,7 @@ node[:deploy].each do |application, _|
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-			cd /srv/www/#{application}/current
+			sudo cd /srv/www/#{application}/current
 		  #{node[:opsworks][:rack_stack][:stop_command]}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
