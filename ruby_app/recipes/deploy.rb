@@ -133,19 +133,19 @@ node[:deploy].each do |application, _|
 		variables( :log_dirs => ["#{node[:deploy][application][:deploy_to]}/shared/log" ] )
 	end
 
-	execute "Stopping #{application} for restart" do
-		cwd       node[:deploy][application][:current_path]
-		command 	node[:opsworks][:rack_stack][:stop_command]
-		action :run
-	end
+	# execute "Stopping #{application} for restart" do
+	# 	cwd       node[:deploy][application][:current_path]
+	# 	command 	node[:opsworks][:rack_stack][:stop_command]
+	# 	action :run
+	# end
 
-	bash "Checking for running instances of #{application}" do
+	bash "Gracefully shutting down #{application}" do
 		code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-			sudo cd /srv/www/#{application}/current
+			cd #{node[:deploy][application][:current_path]}
 		  #{node[:opsworks][:rack_stack][:stop_command]}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
