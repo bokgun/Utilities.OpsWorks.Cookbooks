@@ -139,8 +139,10 @@ node[:deploy].each do |application, _|
 	# 	action :run
 	# end
 
+	release = release_path
+
 	bash "Gracefully shutting down #{application}" do
-		cwd release_path
+		cwd release
 		code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
@@ -171,16 +173,16 @@ node[:deploy].each do |application, _|
 
 	if !system("grep #{application} /etc/monit/monitrc")
 		execute "Starting app #{application}" do
-			cwd       release_path
+			cwd       release
 			command   node[:opsworks][:rack_stack][:start_command]
 			action    :run
 		end
 
 		bash "Adding #{application} to monit" do
 			code <<-EOH
-			sudo echo 'check process #{application} with pidfile #{release_path}/run/#{application}.pid
-start program = "#{release_path}/#{application} -d -P #{release_path}/run/#{application}.pid -l #{release_path}/shared/log/#{application}.log"
-stop program = "#{release_path}/#{application} -k -P #{release_path}/run/#{application}.pid"' >> /etc/monit/monitrc
+			sudo echo 'check process #{application} with pidfile #{release}/run/#{application}.pid
+start program = "#{release}/#{application} -d -P #{release}/run/#{application}.pid -l #{release}/shared/log/#{application}.log"
+stop program = "#{release}/#{application} -k -P #{release}/run/#{application}.pid"' >> /etc/monit/monitrc
 			EOH
 		end
 
