@@ -95,7 +95,7 @@ node[:deploy].each do |application, _|
 			end
 
 			before_symlink do
-				@release = release_path
+				@release = "#{release_path}"
 				if node[:deploy][application][:auto_bundle_on_deploy]
 					Chef::Log.info("Gemfile detected. Running bundle install.")
 					Chef::Log.info("sudo su deploy -c 'cd #{release_path} && #{node[:deploy][application][:bundle_command]} install --path #{node[:deploy][application][:home]}/.bundler/#{application} --without=#{node[:deploy][application][:ignore_bundler_groups].join(' ')}'")
@@ -139,7 +139,7 @@ node[:deploy].each do |application, _|
 	# 	command 	node[:opsworks][:rack_stack][:stop_command]
 	# 	action :run
 	# end
-	Chef::Log.info("Release_path: #{@release}")
+	Chef::Log.info("Release_path: #{release_path}, @release: #{@release}")
 	bash "Gracefully shutting down #{application}" do
 		cwd @release
 		code <<-EOH
