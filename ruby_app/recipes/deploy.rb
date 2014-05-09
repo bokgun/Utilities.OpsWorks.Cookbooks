@@ -95,7 +95,6 @@ node[:deploy].each do |application, _|
 			end
 
 			before_symlink do
-				@release = "#{release_path}"
 				if node[:deploy][application][:auto_bundle_on_deploy]
 					Chef::Log.info("Gemfile detected. Running bundle install.")
 					Chef::Log.info("sudo su deploy -c 'cd #{release_path} && #{node[:deploy][application][:bundle_command]} install --path #{node[:deploy][application][:home]}/.bundler/#{application} --without=#{node[:deploy][application][:ignore_bundler_groups].join(' ')}'")
@@ -139,9 +138,9 @@ node[:deploy].each do |application, _|
 	# 	command 	node[:opsworks][:rack_stack][:stop_command]
 	# 	action :run
 	# end
-	Chef::Log.info("Release_path: #{release_path}, @release: #{@release}")
+	Chef::Log.info("Release_path: #{node[:deploy][application][:current_path]}")
 	bash "Gracefully shutting down #{application}" do
-		cwd @release
+		cwd node[:deploy][application][:release_path]
 		code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
@@ -172,7 +171,7 @@ node[:deploy].each do |application, _|
 
 	if !system("grep #{application} /etc/monit/monitrc")
 		execute "Starting app #{application}" do
-			cwd       @release
+			cwd       node[:deploy][application][:release_path]
 			command   node[:opsworks][:rack_stack][:start_command]
 			action    :run
 		end
@@ -180,8 +179,8 @@ node[:deploy].each do |application, _|
 		bash "Adding #{application} to monit" do
 			code <<-EOH
 			sudo echo 'check process #{application} with pidfile #{@release}/run/#{application}.pid
-start program = "#{@release}/#{application} -d -P #{@release}/run/#{application}.pid -l #{@release}/shared/log/#{application}.log"
-stop program = "#{@release}/#{application} -k -P #{@release}/run/#{application}.pid"' >> /etc/monit/monitrc
+start program = "#{node[:deploy][application][:release_path]}/#{application} -d -P #{node[:deploy][application][:release_path]}/run/#{application}.pid -l #{node[:deploy][application][:release_path]}/shared/log/#{application}.log"
+stop program = "#{node[:deploy][application][:release_path]}/#{application} -k -P #{node[:deploy][application][:release_path]}/run/#{application}.pid"' >> /etc/monit/monitrc
 			EOH
 		end
 
