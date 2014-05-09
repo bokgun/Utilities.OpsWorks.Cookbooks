@@ -178,7 +178,7 @@ node[:deploy].each do |application, _|
 
 		bash "Adding #{application} to monit" do
 			code <<-EOH
-			sudo echo 'check process #{application} with pidfile #{release_path}/run/#{application}.pid
+			sudo echo 'check process #{application} with pidfile #{node[:deploy][application][:current_path]}/run/#{application}.pid
 start program = "#{node[:deploy][application][:current_path]}/#{application} -d -P #{node[:deploy][application][:current_path]}/run/#{application}.pid -l #{node[:deploy][application][:current_path]}/shared/log/#{application}.log"
 stop program = "#{node[:deploy][application][:current_path]}/#{application} -k -P #{node[:deploy][application][:current_path]}/run/#{application}.pid"' >> /etc/monit/monitrc
 			EOH
