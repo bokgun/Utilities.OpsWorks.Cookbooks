@@ -139,7 +139,7 @@ node[:deploy].each do |application, _|
 	# 	action :run
 	# end
 
-	release = release_path
+	release = "#{release_path}"
 
 	bash "Gracefully shutting down #{application}" do
 		cwd release
