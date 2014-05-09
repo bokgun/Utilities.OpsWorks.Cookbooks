@@ -139,7 +139,7 @@ node[:deploy].each do |application, _|
 	# 	command 	node[:opsworks][:rack_stack][:stop_command]
 	# 	action :run
 	# end
-
+	Chef::Log.info("Release_path: #{@release}")
 	bash "Gracefully shutting down #{application}" do
 		cwd @release
 		code <<-EOH
