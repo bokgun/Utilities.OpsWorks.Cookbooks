@@ -171,7 +171,7 @@ node[:deploy].each do |application, _|
 
 	if !system("grep #{application} /etc/monit/monitrc")
 		execute "Starting app #{application}" do
-			cwd       release_path
+			cwd       "#{release_path}"
 			command   node[:opsworks][:rack_stack][:start_command]
 			action    :run
 		end
