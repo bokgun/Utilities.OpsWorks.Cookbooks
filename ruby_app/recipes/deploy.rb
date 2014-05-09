@@ -145,7 +145,7 @@ node[:deploy].each do |application, _|
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-			cd #{node[:deploy][application][:current_path]}
+			cd #{release_path}
 		  #{node[:opsworks][:rack_stack][:stop_command]}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
@@ -171,16 +171,16 @@ node[:deploy].each do |application, _|
 
 	if !system("grep #{application} /etc/monit/monitrc")
 		execute "Starting app #{application}" do
-			cwd       node[:deploy][application][:current_path]
+			cwd       release_path
 			command   node[:opsworks][:rack_stack][:start_command]
 			action    :run
 		end
 
 		bash "Adding #{application} to monit" do
 			code <<-EOH
-			sudo echo 'check process #{application} with pidfile #{node[:deploy][application][:current_path]}/run/#{application}.pid
-start program = "#{node[:deploy][application][:current_path]}/#{application} -d -P #{node[:deploy][application][:current_path]}/run/#{application}.pid -l #{node[:deploy][application][:current_path]}/shared/log/#{application}.log"
-stop program = "#{node[:deploy][application][:current_path]}/#{application} -k -P #{node[:deploy][application][:current_path]}/run/#{application}.pid"' >> /etc/monit/monitrc
+			sudo echo 'check process #{application} with pidfile #{release_path}/run/#{application}.pid
+start program = "#{release_path}/#{application} -d -P #{release_path}/run/#{application}.pid -l #{release_path}/shared/log/#{application}.log"
+stop program = "#{release_path}/#{application} -k -P #{release_path}/run/#{application}.pid"' >> /etc/monit/monitrc
 			EOH
 		end
 
