@@ -140,12 +140,12 @@ node[:deploy].each do |application, _|
 	# end
 
 	bash "Gracefully shutting down #{application}" do
+		cwd release_path
 		code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-			cd #{release_path}
 		  #{node[:opsworks][:rack_stack][:stop_command]}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
