@@ -133,15 +133,17 @@ node[:deploy].each do |application, deploy_item|
 		mode      0644
 		variables( :log_dirs => ["#{node[:deploy][application][:deploy_to]}/shared/log" ] )
 	end
-
+	#
 	# execute "Stopping #{application} for restart" do
 	# 	cwd       node[:deploy][application][:current_path]
 	# 	command 	node[:opsworks][:rack_stack][:stop_command]
 	# 	action :run
 	# end
-	Chef::Log.info("Release_path: #{deploy_item[:release_path]}")
+
+	release = File.readlink(node[:deploy][application][:current_path])
+	Chef::Log.info("Release_path: #{release}")
 	bash "Gracefully shutting down #{application}" do
-		cwd deploy_item[:release_path]
+		cwd release
 		code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
@@ -172,16 +174,16 @@ node[:deploy].each do |application, deploy_item|
 
 	if !system("grep #{application} /etc/monit/monitrc")
 		execute "Starting app #{application}" do
-			cwd       deploy_item[:release_path]
+			cwd       release
 			command   node[:opsworks][:rack_stack][:start_command]
 			action    :run
 		end
 
 		bash "Adding #{application} to monit" do
 			code <<-EOH
-			sudo echo 'check process #{application} with pidfile #{deploy_item[:release_path]}/run/#{application}.pid
-start program = "#{deploy_item[:release_path]} -d -P #{deploy_item[:release_path]}/run/#{application}.pid -l #{deploy_item[:release_path]}/shared/log/#{application}.log"
-stop program = "#{deploy_item[:release_path]}/#{application} -k -P #{deploy_item[:release_path]}/run/#{application}.pid"' >> /etc/monit/monitrc
+			sudo echo 'check process #{application} with pidfile #{release}/run/#{application}.pid
+start program = "#{release} -d -P #{release}/run/#{application}.pid -l #{release}/shared/log/#{application}.log"
+stop program = "#{release}/#{application} -k -P #{release}/run/#{application}.pid"' >> /etc/monit/monitrc
 			EOH
 		end
 
