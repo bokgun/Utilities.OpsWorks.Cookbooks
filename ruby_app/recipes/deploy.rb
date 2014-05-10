@@ -112,6 +112,7 @@ node[:deploy].each do |application, _|
 			before_migrate do
 				link_tempfiles_to_current_release
 				# additionally run any user-provided callback file
+				Chef::Log.info("Running before_migrate from #{release_path}/deploy/before_migrate.rb")
 				run_callback_from_file("#{release_path}/deploy/before_migrate.rb")
 			end
 		end
