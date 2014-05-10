@@ -1,4 +1,4 @@
-node[:deploy].each do |application, _|
+node[:deploy].each do |application, deploy_item|
 
 	Chef::Log.info "[recipe ruby_app::deploy] node[:deploy][application][:deploy_to] == '#{node[:deploy][application][:deploy_to]}'"
 
@@ -139,9 +139,9 @@ node[:deploy].each do |application, _|
 	# 	command 	node[:opsworks][:rack_stack][:stop_command]
 	# 	action :run
 	# end
-	Chef::Log.info("Release_path: #{node[:deploy][application][:current_path]}")
+	Chef::Log.info("Release_path: #{deploy_item[:release_path]}")
 	bash "Gracefully shutting down #{application}" do
-		cwd node[:deploy][application][:release_path]
+		cwd deploy_item[:release_path]
 		code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
@@ -172,16 +172,16 @@ node[:deploy].each do |application, _|
 
 	if !system("grep #{application} /etc/monit/monitrc")
 		execute "Starting app #{application}" do
-			cwd       node[:deploy][application][:release_path]
+			cwd       deploy_item[:release_path]
 			command   node[:opsworks][:rack_stack][:start_command]
 			action    :run
 		end
 
 		bash "Adding #{application} to monit" do
 			code <<-EOH
-			sudo echo 'check process #{application} with pidfile #{@release}/run/#{application}.pid
-start program = "#{node[:deploy][application][:release_path]}/#{application} -d -P #{node[:deploy][application][:release_path]}/run/#{application}.pid -l #{node[:deploy][application][:release_path]}/shared/log/#{application}.log"
-stop program = "#{node[:deploy][application][:release_path]}/#{application} -k -P #{node[:deploy][application][:release_path]}/run/#{application}.pid"' >> /etc/monit/monitrc
+			sudo echo 'check process #{application} with pidfile #{deploy_item[:release_path]}/run/#{application}.pid
+start program = "#{deploy_item[:release_path]} -d -P #{deploy_item[:release_path]}/run/#{application}.pid -l #{deploy_item[:release_path]}/shared/log/#{application}.log"
+stop program = "#{deploy_item[:release_path]}/#{application} -k -P #{deploy_item[:release_path]}/run/#{application}.pid"' >> /etc/monit/monitrc
 			EOH
 		end
 
