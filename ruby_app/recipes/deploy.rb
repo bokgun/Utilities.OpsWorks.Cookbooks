@@ -140,7 +140,7 @@ node[:deploy].each do |application, deploy_item|
 	# 	action :run
 	# end
 
-	current = node[:opsworks][:rack_stack][:current_path]
+	current = node[:opsworks][application][:current_path]
 	bash "Gracefully shutting down #{application}" do
 		cwd current
 		code <<-EOH
@@ -180,8 +180,8 @@ node[:deploy].each do |application, deploy_item|
 	if !system("grep #{application} /etc/monit/monitrc")
 		bash "Adding #{application} to monit and setting an alert if it fails" do
 			code <<-EOH
-       SET MAILSERVER email-smtp.us-east-1.amazonaws.com port 587
-    username "AKIAJYX4MKVE7BH3L6XA" password "Aj3SMezz90mNFX4dJ4L0MaxfSahOuBbhO4Kueipk4vH5"
+       SET MAILSERVER #{node[:deploy][application][:mailserver]} port #{node[:deploy][application][:mailserver_port]}
+    username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
 			SET ALERT etl@casenex.com
 			sudo echo 'check process #{application} with pidfile #{current}/run/#{application}.pid
 start program = "#{current} -d -P #{current}/run/#{application}.pid -l #{current}/shared/log/#{application}.log"
