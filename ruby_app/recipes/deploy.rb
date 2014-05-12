@@ -1,4 +1,4 @@
-node[:deploy].each do |application, deploy_item|
+node[:deploy].each do |application, _|
 
 	Chef::Log.info "[recipe ruby_app::deploy] node[:deploy][application][:deploy_to] == '#{node[:deploy][application][:deploy_to]}'"
 
@@ -112,7 +112,6 @@ node[:deploy].each do |application, deploy_item|
 			before_migrate do
 				link_tempfiles_to_current_release
 				# additionally run any user-provided callback file
-				Chef::Log.info("Running before_migrate from #{release_path}/deploy/before_migrate.rb")
 				run_callback_from_file("#{release_path}/deploy/before_migrate.rb")
 			end
 		end
@@ -133,23 +132,21 @@ node[:deploy].each do |application, deploy_item|
 		mode      0644
 		variables( :log_dirs => ["#{node[:deploy][application][:deploy_to]}/shared/log" ] )
 	end
-	#
+
 	# execute "Stopping #{application} for restart" do
 	# 	cwd       node[:deploy][application][:current_path]
 	# 	command 	node[:opsworks][:rack_stack][:stop_command]
 	# 	action :run
 	# end
 
-	current = node[:deploy][application][:current_path]
-	Chef::Log.debug("Release_path is: #{current}")
 	bash "Gracefully shutting down #{application}" do
-		cwd current
 		code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-		  #{node[:opsworks][:rack_stack][:stop_command]}
+			cd #{node[:deploy][application][:current_path]}
+		#{node[:opsworks][:rack_stack][:stop_command]}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
 			do
@@ -172,22 +169,21 @@ node[:deploy].each do |application, deploy_item|
 		action :run
 	end
 
-	execute "Starting app #{application}" do
-		cwd       current
-		command   node[:opsworks][:rack_stack][:start_command]
-		action    :run
-	end
+		execute "Starting app #{application}" do
+			cwd       node[:deploy][application][:current_path]
+			command   node[:opsworks][:rack_stack][:start_command]
+			action    :run
+		end
 
 	if !system("grep #{application} /etc/monit/monitrc")
-		bash "Adding #{application} to monit and setting an alert if it fails" do
+
+		bash "Adding #{application} to monit" do
 			code <<-EOH
-       SET MAILSERVER #{node[:deploy][application][:mailserver]} port #{node[:deploy][application][:mailserver_port]}
-    username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
+			sudo echo
+			'SET MAILSERVER #{node[:deploy][application][:mailserver]} port #{node[:deploy][application][:mailserver_port]}
+    	username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
 			SET ALERT etl@casenex.com
-			sudo echo 'check process #{application} with pidfile #{current}/run/#{application}.pid
-start program = "#{current} -d -P #{current}/run/#{application}.pid -l #{current}/shared/log/#{application}.log"
-stop program = "#{current}/#{application} -k -P #{current}/run/#{application}.pid"
-if failed then alert' >> /etc/monit/monitrc
+			check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid' >> /etc/monit/monitrc
 			EOH
 		end
 
