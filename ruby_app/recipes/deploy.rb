@@ -114,60 +114,6 @@ node[:deploy].each do |application, deploy_item|
 				# additionally run any user-provided callback file
 				Chef::Log.info("Running before_migrate from #{release_path}/deploy/before_migrate.rb")
 				run_callback_from_file("#{release_path}/deploy/before_migrate.rb")
-
-				release = release_path
-				Chef::Log.info("Release_path: #{release}")
-				bash "Gracefully shutting down #{application}" do
-					cwd release
-					code <<-EOH
-			SERVICE='bin/#{application}';
-			STATUS=1;
-			DELAY=5;
-			SLEPT=0;
-		  #{node[:opsworks][:rack_stack][:stop_command]}
-			echo 'Checking for running process'
-			while [ "$STATUS" -eq "1" ]
-			do
-				if ps aux | grep -v grep | grep $SERVICE > /dev/null
-				then
-						if $SLEPT -lt 120
-						then
-							sleep $DELAY
-							SLEPT+=$DELAY;
-						else
-							STATUS=0;
-						fi
-				else
-					echo 'No process running, starting app'
-					STATUS=0;
-				fi
-			done
-
-					EOH
-					action :run
-				end
-
-				if !system("grep #{application} /etc/monit/monitrc")
-					execute "Starting app #{application}" do
-						cwd       release
-						command   node[:opsworks][:rack_stack][:start_command]
-						action    :run
-					end
-
-					bash "Adding #{application} to monit" do
-						code <<-EOH
-			sudo echo 'check process #{application} with pidfile #{release}/run/#{application}.pid
-start program = "#{release} -d -P #{release}/run/#{application}.pid -l #{release}/shared/log/#{application}.log"
-stop program = "#{release}/#{application} -k -P #{release}/run/#{application}.pid"' >> /etc/monit/monitrc
-						EOH
-					end
-
-					bash "Restarting monit" do
-						code <<-EOH
-				sudo /etc/init.d/monit restart
-						EOH
-					end
-				end
 			end
 		end
 	end
@@ -194,4 +140,60 @@ stop program = "#{release}/#{application} -k -P #{release}/run/#{application}.pi
 	# 	action :run
 	# end
 
+	current = node[:opsworks][:rack_stack][:current_path]
+	bash "Gracefully shutting down #{application}" do
+		cwd current
+		code <<-EOH
+			SERVICE='bin/#{application}';
+			STATUS=1;
+			DELAY=5;
+			SLEPT=0;
+		  #{node[:opsworks][:rack_stack][:stop_command]}
+			echo 'Checking for running process'
+			while [ "$STATUS" -eq "1" ]
+			do
+				if ps aux | grep -v grep | grep $SERVICE > /dev/null
+				then
+						if $SLEPT -lt 120
+						then
+							sleep $DELAY
+							SLEPT+=$DELAY;
+						else
+							STATUS=0;
+						fi
+				else
+					echo 'No process running, starting app'
+					STATUS=0;
+				fi
+			done
+
+		EOH
+		action :run
+	end
+
+	execute "Starting app #{application}" do
+		cwd       current
+		command   node[:opsworks][:rack_stack][:start_command]
+		action    :run
+	end
+
+	if !system("grep #{application} /etc/monit/monitrc")
+		bash "Adding #{application} to monit and setting an alert if it fails" do
+			code <<-EOH
+       SET MAILSERVER email-smtp.us-east-1.amazonaws.com port 587
+    username "AKIAJYX4MKVE7BH3L6XA" password "Aj3SMezz90mNFX4dJ4L0MaxfSahOuBbhO4Kueipk4vH5"
+			SET ALERT etl@casenex.com
+			sudo echo 'check process #{application} with pidfile #{current}/run/#{application}.pid
+start program = "#{current} -d -P #{current}/run/#{application}.pid -l #{current}/shared/log/#{application}.log"
+stop program = "#{current}/#{application} -k -P #{current}/run/#{application}.pid"
+if failed then alert' >> /etc/monit/monitrc
+			EOH
+		end
+
+		bash "Restarting monit" do
+			code <<-EOH
+				sudo /etc/init.d/monit restart
+			EOH
+		end
+	end
 end
