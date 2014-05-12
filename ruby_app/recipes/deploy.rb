@@ -114,37 +114,12 @@ node[:deploy].each do |application, deploy_item|
 				# additionally run any user-provided callback file
 				Chef::Log.info("Running before_migrate from #{release_path}/deploy/before_migrate.rb")
 				run_callback_from_file("#{release_path}/deploy/before_migrate.rb")
-			end
-		end
-	end
 
-	ruby_block "change HOME back to /root after source checkout" do
-		block do
-			ENV['HOME'] = "/root"
-		end
-	end
-
-	template "/etc/logrotate.d/opsworks_app_#{application}" do
-		backup    false
-		source    "logrotate.erb"
-		cookbook  'deploy'
-		owner     "root"
-		group     "root"
-		mode      0644
-		variables( :log_dirs => ["#{node[:deploy][application][:deploy_to]}/shared/log" ] )
-	end
-	#
-	# execute "Stopping #{application} for restart" do
-	# 	cwd       node[:deploy][application][:current_path]
-	# 	command 	node[:opsworks][:rack_stack][:stop_command]
-	# 	action :run
-	# end
-
-	release = File.readlink(node[:deploy][application][:current_path])
-	Chef::Log.info("Release_path: #{release}")
-	bash "Gracefully shutting down #{application}" do
-		cwd release
-		code <<-EOH
+				release = release_path
+				Chef::Log.info("Release_path: #{release}")
+				bash "Gracefully shutting down #{application}" do
+					cwd release
+					code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
 			DELAY=5;
@@ -168,29 +143,55 @@ node[:deploy].each do |application, deploy_item|
 				fi
 			done
 
-		EOH
-		action :run
-	end
+					EOH
+					action :run
+				end
 
-	if !system("grep #{application} /etc/monit/monitrc")
-		execute "Starting app #{application}" do
-			cwd       release
-			command   node[:opsworks][:rack_stack][:start_command]
-			action    :run
-		end
+				if !system("grep #{application} /etc/monit/monitrc")
+					execute "Starting app #{application}" do
+						cwd       release
+						command   node[:opsworks][:rack_stack][:start_command]
+						action    :run
+					end
 
-		bash "Adding #{application} to monit" do
-			code <<-EOH
+					bash "Adding #{application} to monit" do
+						code <<-EOH
 			sudo echo 'check process #{application} with pidfile #{release}/run/#{application}.pid
 start program = "#{release} -d -P #{release}/run/#{application}.pid -l #{release}/shared/log/#{application}.log"
 stop program = "#{release}/#{application} -k -P #{release}/run/#{application}.pid"' >> /etc/monit/monitrc
-			EOH
-		end
+						EOH
+					end
 
-		bash "Restarting monit" do
-			code <<-EOH
+					bash "Restarting monit" do
+						code <<-EOH
 				sudo /etc/init.d/monit restart
-			EOH
+						EOH
+					end
+				end
+			end
+
+	ruby_block "change HOME back to /root after source checkout" do
+		block do
+			ENV['HOME'] = "/root"
 		end
 	end
-end
+
+	template "/etc/logrotate.d/opsworks_app_#{application}" do
+		backup    false
+		source    "logrotate.erb"
+		cookbook  'deploy'
+		owner     "root"
+		group     "root"
+		mode      0644
+		variables( :log_dirs => ["#{node[:deploy][application][:deploy_to]}/shared/log" ] )
+	end
+	#
+	# execute "Stopping #{application} for restart" do
+	# 	cwd       node[:deploy][application][:current_path]
+	# 	command 	node[:opsworks][:rack_stack][:stop_command]
+	# 	action :run
+	# end
+
+	end
+	end
+	end
