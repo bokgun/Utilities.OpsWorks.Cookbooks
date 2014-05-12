@@ -179,11 +179,11 @@ node[:deploy].each do |application, _|
 
 		bash "Adding #{application} to monit" do
 			code <<-EOH
-			sudo echo
-			'SET MAILSERVER #{node[:deploy][application][:mailserver]} port #{node[:deploy][application][:mailserver_port]}
-    	username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
-			SET ALERT etl@casenex.com
-			check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid' >> /etc/monit/monitrc
+			sudo echo 'SET MAILSERVER #{node[:deploy][application][:mailserver]} port #{node[:deploy][application][:mailserver_port]}
+username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
+SET ALERT etl@casenex.com
+check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
+if failed then alert' >> /etc/monit/monitrc
 			EOH
 		end
 
