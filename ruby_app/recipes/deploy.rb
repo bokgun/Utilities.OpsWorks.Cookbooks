@@ -141,6 +141,7 @@ node[:deploy].each do |application, deploy_item|
 	# end
 
 	current = node[:deploy][application][:release_path]
+	Chef::Log.debug("Release_path is: #{current}")
 	bash "Gracefully shutting down #{application}" do
 		cwd current
 		code <<-EOH
