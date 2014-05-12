@@ -140,7 +140,7 @@ node[:deploy].each do |application, deploy_item|
 	# 	action :run
 	# end
 
-	current = node[:deploy][application][:current_path]
+	current = node[:deploy][application][:release_path]
 	bash "Gracefully shutting down #{application}" do
 		cwd current
 		code <<-EOH
