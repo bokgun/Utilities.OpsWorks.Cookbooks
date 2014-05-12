@@ -169,6 +169,8 @@ stop program = "#{release}/#{application} -k -P #{release}/run/#{application}.pi
 					end
 				end
 			end
+		end
+	end
 
 	ruby_block "change HOME back to /root after source checkout" do
 		block do
@@ -192,6 +194,4 @@ stop program = "#{release}/#{application} -k -P #{release}/run/#{application}.pi
 	# 	action :run
 	# end
 
-	end
-	end
-	end
+end
