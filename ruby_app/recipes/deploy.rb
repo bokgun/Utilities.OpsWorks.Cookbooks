@@ -145,6 +145,7 @@ node[:deploy].each do |application, _|
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
+			sudo -i
 			cd #{node[:deploy][application][:current_path]}
 		#{node[:opsworks][:rack_stack][:stop_command]}
 			echo 'Checking for running process'
@@ -168,6 +169,7 @@ node[:deploy].each do |application, _|
 		EOH
 		action :run
 	end
+
 
 		execute "Starting app #{application}" do
 			cwd       node[:deploy][application][:current_path]
