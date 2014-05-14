@@ -166,7 +166,7 @@ stop program = "#{node[:deploy][application][:current_path]}/bin/#{application}/
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-			monit stop #{application}
+			sudo monit stop #{application}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
 			do
@@ -192,7 +192,7 @@ stop program = "#{node[:deploy][application][:current_path]}/bin/#{application}/
 
 		execute "Starting app #{application}" do
 			cwd       node[:deploy][application][:current_path]
-			command   "monit start #{application}"
+			command   "sudo monit start #{application}"
 			action    :run
 		end
 
