@@ -166,7 +166,7 @@ stop program = "#{node[:deploy][application][:current_path]}/bin/#{application} 
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-			#{node[:opsworks][:rack_stack][:stop_command]}
+			sudo monit stop #{application}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
 			do
