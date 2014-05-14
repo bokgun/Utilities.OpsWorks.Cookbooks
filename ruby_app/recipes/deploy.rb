@@ -139,15 +139,34 @@ node[:deploy].each do |application, _|
 	# 	action :run
 	# end
 
+
+	if !system("grep #{application} /etc/monit/monitrc")
+
+		bash "Adding #{application} to monit" do
+			code <<-EOH
+			sudo echo 'SET MAILSERVER #{node[:deploy][application][:mailserver]} port #{node[:deploy][application][:mailserver_port]}
+username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
+SET ALERT etl@casenex.com
+check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
+start program = "#{node[:deploy][application][:current_path]}/bin/#{application} -d -P #{node[:deploy][application][:current_path]}/run/#{application}.pid -l #{node[:deploy][application][:current_path]}/shared/log/#{application}.log"
+stop program = "#{node[:deploy][application][:current_path]}/bin/#{application}/bin/#{application} -k -P #{node[:deploy][application][:current_path]}/run/#{application}.pid"' >> /etc/monit/monitrc
+			EOH
+		end
+
+		bash "Restarting monit" do
+			code <<-EOH
+				sudo /etc/init.d/monit restart
+			EOH
+		end
+	end
+
 	bash "Gracefully shutting down #{application}" do
 		code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-			sudo -i
-			cd #{node[:deploy][application][:current_path]}
-		#{node[:opsworks][:rack_stack][:stop_command]}
+			monit stop #{application}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
 			do
@@ -173,25 +192,8 @@ node[:deploy].each do |application, _|
 
 		execute "Starting app #{application}" do
 			cwd       node[:deploy][application][:current_path]
-			command   node[:opsworks][:rack_stack][:start_command]
+			command   "monit start #{application}"
 			action    :run
 		end
 
-	if !system("grep #{application} /etc/monit/monitrc")
-
-		bash "Adding #{application} to monit" do
-			code <<-EOH
-			sudo echo 'SET MAILSERVER #{node[:deploy][application][:mailserver]} port #{node[:deploy][application][:mailserver_port]}
-username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
-SET ALERT etl@casenex.com
-check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid' >> /etc/monit/monitrc
-			EOH
-		end
-
-		bash "Restarting monit" do
-			code <<-EOH
-				sudo /etc/init.d/monit restart
-			EOH
-		end
-	end
 end
