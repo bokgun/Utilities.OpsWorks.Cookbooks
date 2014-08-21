@@ -148,7 +148,7 @@ node[:deploy].each do |application, _|
 username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
 SET ALERT etl@casenex.com
 check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
-start program = "su -c #{node[:deploy][application][:user]} #{node[:deploy][application][:current_path]}/bin/#{application} -d -P #{node[:deploy][application][:current_path]}/run/#{application}.pid -l #{node[:deploy][application][:current_path]}/shared/log/#{application}.log"
+start program = "#{node[:deploy][application][:current_path]}/bin/#{application} -d -P #{node[:deploy][application][:current_path]}/run/#{application}.pid -l #{node[:deploy][application][:current_path]}/shared/log/#{application}.log" as uid #{node[:deploy][application][:user]} as gid #{node[:deploy][application][:group]}
 stop program = "#{node[:deploy][application][:current_path]}/bin/#{application} -k -P #{node[:deploy][application][:current_path]}/run/#{application}.pid"' >> /etc/monit/monitrc
 			EOH
 		end
