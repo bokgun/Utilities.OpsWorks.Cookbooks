@@ -153,20 +153,24 @@ stop program = "#{node[:deploy][application][:current_path]}/bin/#{application} 
 			EOH
 		end
 
-		bash "Restarting monit" do
-			code <<-EOH
-				sudo /etc/init.d/monit restart
-			EOH
+		execute "Restarting monit" do
+		  command   "sudo /etc/init.d/monit restart"
+      action    :run
 		end
 	end
 
-	bash "Gracefully shutting down #{application}" do
+  execute "Stopping app #{application}" do
+    cwd       node[:deploy][application][:current_path]
+    command   "monit stop #{application}"
+    action    :run
+  end
+
+	bash "Checking for running instances of #{application}" do
 		code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
 			DELAY=5;
 			SLEPT=0;
-			sudo monit stop #{application}
 			echo 'Checking for running process'
 			while [ "$STATUS" -eq "1" ]
 			do
@@ -192,7 +196,7 @@ stop program = "#{node[:deploy][application][:current_path]}/bin/#{application} 
 
 		execute "Starting app #{application}" do
 			cwd       node[:deploy][application][:current_path]
-			command   node[:opsworks][:rack_stack][:start_command]
+			command   "monit start #{application}"
 			action    :run
 		end
 
