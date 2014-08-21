@@ -161,7 +161,7 @@ stop program = "#{node[:deploy][application][:current_path]}/bin/#{application} 
 
   execute "Stopping app #{application}" do
     cwd       node[:deploy][application][:current_path]
-    command
+    command   "#{node[:deploy][application][:current_path]}/bin/#{application} -k -P #{node[:deploy][application][:current_path]}/run/#{application}.pid"
     action    :run
   end
 
