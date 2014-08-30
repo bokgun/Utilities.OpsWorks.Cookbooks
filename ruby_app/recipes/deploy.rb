@@ -161,7 +161,7 @@ stop program = "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{nod
 
   execute "Stopping app #{application}" do
     cwd       node[:deploy][application][:current_path]
-    command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec #{node[:deploy][application][:current_path]}/bin/#{application} stop"
+    command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application} stop"
     user      "#{node[:deploy][application][:user]}"
     action    :run
   end
