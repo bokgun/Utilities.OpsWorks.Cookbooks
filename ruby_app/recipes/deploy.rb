@@ -148,8 +148,8 @@ node[:deploy].each do |application, _|
 username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
 SET ALERT etl@casenex.com
 check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
-start program = "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application} start" as uid #{node[:deploy][application][:user]} as gid #{node[:deploy][application][:group]}
-stop program = "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application} stop"' >> /etc/monit/monitrc
+start program = "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb start" as uid #{node[:deploy][application][:user]} as gid #{node[:deploy][application][:group]}
+stop program = "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"' >> /etc/monit/monitrc
 			EOH
 		end
 
@@ -161,7 +161,7 @@ stop program = "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{nod
 
   execute "Stopping app #{application}" do
     cwd       node[:deploy][application][:current_path]
-    command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application} stop"
+    command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"
     user      "#{node[:deploy][application][:user]}"
     action    :run
   end
