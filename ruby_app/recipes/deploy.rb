@@ -106,7 +106,31 @@ node[:deploy].each do |application, _|
 						EOH
 						action :run
 					end
-				end
+        end
+
+        if !system("grep #{application} /etc/monit/monitrc")
+
+          template "/etc/monit/monitrc" do
+            source "monitrc.erb"
+            cookbook "ruby_app"
+            mode 0700
+            owner "root"
+            group "root"
+          end
+
+          execute "Restarting monit" do
+            command   "sudo /etc/init.d/monit restart"
+            action    :run
+          end
+        end
+
+        execute "Stopping app #{application}" do
+          cwd       node[:deploy][application][:current_path]
+          command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"
+          user      node[:deploy][application][:user]
+          action    :run
+        end
+
 			end
 
 			before_migrate do
@@ -131,33 +155,11 @@ node[:deploy].each do |application, _|
 		group     "root"
 		mode      0644
 		variables( :log_dirs => ["#{node[:deploy][application][:deploy_to]}/shared/log" ] )
-	end
-
-	if !system("grep #{application} /etc/monit/monitrc")
-
-    template "/etc/monit/monitrc" do
-      source "monitrc.erb"
-      cookbook "ruby_app"
-      mode 0700
-      owner "root"
-      group "root"
-    end
-
-		execute "Restarting monit" do
-		  command   "sudo /etc/init.d/monit restart"
-      action    :run
-		end
-	end
-
-  execute "Stopping app #{application}" do
-    cwd       node[:deploy][application][:current_path]
-    command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"
-    user      node[:deploy][application][:user]
-    action    :run
   end
 
-	bash "Checking for running instances of #{application}" do
-		code <<-EOH
+
+  bash "Checking for running instances of #{application}" do
+    code <<-EOH
 			SERVICE='bin/#{application}';
 			STATUS=1;
 			DELAY=5;
@@ -180,9 +182,10 @@ node[:deploy].each do |application, _|
 				fi
 			done
 
-		EOH
-		action :run
-	end
+    EOH
+    action :run
+  end
+
 
 
 		execute "Starting app #{application}" do
