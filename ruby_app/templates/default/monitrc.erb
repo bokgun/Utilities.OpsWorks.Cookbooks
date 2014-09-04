@@ -1,0 +1,17 @@
+<% node[:deploy].each do |application, _| %>
+set daemon 60
+set mailserver localhost
+set eventqueue
+basedir /var/monit
+slots 100
+set logfile syslog
+Include /etc/monit/conf.d/*.monitrc
+set httpd port 2812 and use the address localhost
+allow localhost
+SET MAILSERVER <%=node[:deploy][application][:mailserver] %> port <%= node[:deploy][application][:mailserver_port] %>
+username "<%=node[:deploy][application][:mailserver_username]%>" password <%=node[:deploy][application][:mailserver_password]%>
+SET ALERT etl@casenex.com
+check process <%= application %> with pidfile /srv/www/#{application}/current/run/<%= application %>.pid
+start program = "/bin/bash -c 'cd <%= node[:deploy][application][:current_path]%>; <%= node[:opsworks][:rack_stack][:bundle_command] %> exec ruby <%= node[:deploy][application][:current_path]%>/bin/<%= application%>.rb start %>'"  as uid <%= node[:deploy][application][:user] %>
+stop program = "/bin/bash -c 'cd <%= node[:deploy][application][:current_path]%>; <%= node[:opsworks][:rack_stack][:bundle_command] %> exec ruby <%= node[:deploy][application][:current_path]%>/bin/<%= application%>.rb stop'"'
+<% end %>

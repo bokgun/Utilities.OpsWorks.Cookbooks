@@ -142,16 +142,23 @@ node[:deploy].each do |application, _|
 
 	if !system("grep #{application} /etc/monit/monitrc")
 
-		bash "Adding #{application} to monit" do
-			code <<-EOH
-			sudo echo 'SET MAILSERVER #{node[:deploy][application][:mailserver]} port #{node[:deploy][application][:mailserver_port]}
-username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
-SET ALERT etl@casenex.com
-check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
-start program = "/bin/bash -c \'cd #{node[:deploy][application][:current_path]}\;#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb start\'" as uid #{node[:deploy][application][:user]}
-stop program = "/bin/bash -c \'cd #{node[:deploy][application][:current_path]}\;#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop\'"' >> /etc/monit/monitrc
-			EOH
-		end
+# 		bash "Adding #{application} to monit" do
+# 			code <<-EOH
+# 			sudo echo 'SET MAILSERVER #{node[:deploy][application][:mailserver]} port #{node[:deploy][application][:mailserver_port]}
+# username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
+# SET ALERT etl@casenex.com
+# check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
+# start program = "/bin/bash -c \'cd #{node[:deploy][application][:current_path]}\;#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb start\'" as uid #{node[:deploy][application][:user]}
+# stop program = "/bin/bash -c \'cd #{node[:deploy][application][:current_path]}\;#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop\'"' >> /etc/monit/monitrc
+# 			EOH
+# 		end
+    template "/etc/monit/monitrc" do
+      source "monitrc.erb"
+      cookbook "ruby_app"
+      mode 0644
+      owner node[:deploy][application][:user]
+      group node[:deploy][application][:group]
+    end
 
 		execute "Restarting monit" do
 		  command   "sudo /etc/init.d/monit restart"
