@@ -148,8 +148,8 @@ node[:deploy].each do |application, _|
 username "#{node[:deploy][application][:mailserver_username]}" password "#{node[:deploy][application][:mailserver_password]}"
 SET ALERT etl@casenex.com
 check process #{application} with pidfile /srv/www/#{application}/current/run/#{application}.pid
-start program = "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb start" as uid #{node[:deploy][application][:user]} as gid #{node[:deploy][application][:group]}
-stop program = "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"' >> /etc/monit/monitrc
+start program = "/bin/bash -c \'cd #{node[:deploy][application][:current_path]};#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb start\'" as uid #{node[:deploy][application][:user]}
+stop program = "/bin/bash -c \'cd #{node[:deploy][application][:current_path]};#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop\''"' >> /etc/monit/monitrc
 			EOH
 		end
 
