@@ -133,13 +133,6 @@ node[:deploy].each do |application, _|
 		variables( :log_dirs => ["#{node[:deploy][application][:deploy_to]}/shared/log" ] )
 	end
 
-	# execute "Stopping #{application} for restart" do
-	# 	cwd       node[:deploy][application][:current_path]
-	# 	command 	node[:opsworks][:rack_stack][:stop_command]
-	# 	action :run
-	# end
-
-
 	if !system("grep #{application} /etc/monit/monitrc")
 
     template "/etc/monit/monitrc" do
@@ -159,7 +152,7 @@ node[:deploy].each do |application, _|
   execute "Stopping app #{application}" do
     cwd       node[:deploy][application][:current_path]
     command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"
-    user      "#{node[:deploy][application][:user]}"
+    user      node[:deploy][application][:user]
     action    :run
   end
 
@@ -195,6 +188,7 @@ node[:deploy].each do |application, _|
 		execute "Starting app #{application}" do
 			cwd       node[:deploy][application][:current_path]
 			command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb start"
+      user      node[:deploy][application][:user]
 			action    :run
 		end
 
