@@ -192,10 +192,10 @@ node[:deploy].each do |application, _|
 	end
 
 
-		# execute "Starting app #{application}" do
-		# 	cwd       node[:deploy][application][:current_path]
-		# 	command   node[:opsworks][:rack_stack][:start_command]
-		# 	action    :run
-		# end
+		execute "Starting app #{application}" do
+			cwd       node[:deploy][application][:current_path]
+			command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb start"
+			action    :run
+		end
 
 end
