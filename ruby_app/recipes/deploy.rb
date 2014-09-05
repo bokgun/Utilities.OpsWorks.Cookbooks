@@ -115,7 +115,7 @@ node[:deploy].each do |application, _|
             user      node[:deploy][application][:user]
             action    :run
           end
-        else !system("grep #{application} /etc/monit/monitrc")
+        else
 
           template "/etc/monit/monitrc" do
             source "monitrc.erb"
