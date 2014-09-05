@@ -95,21 +95,27 @@ node[:deploy].each do |application, _|
 			end
 
 			before_symlink do
-				if node[:deploy][application][:auto_bundle_on_deploy]
-					Chef::Log.info("Gemfile detected. Running bundle install.")
-					Chef::Log.info("sudo su deploy -c 'cd #{release_path} && #{node[:deploy][application][:bundle_command]} install --path #{node[:deploy][application][:home]}/.bundler/#{application} --without=#{node[:deploy][application][:ignore_bundler_groups].join(' ')}'")
+        if node[:deploy][application][:auto_bundle_on_deploy]
+          Chef::Log.info("Gemfile detected. Running bundle install.")
+          Chef::Log.info("sudo su deploy -c 'cd #{release_path} && #{node[:deploy][application][:bundle_command]} install --path #{node[:deploy][application][:home]}/.bundler/#{application} --without=#{node[:deploy][application][:ignore_bundler_groups].join(' ')}'")
 
-					bash "bundle install #{application}" do
-						cwd release_path
-						code <<-EOH
+          bash "bundle install #{application}" do
+            cwd release_path
+            code <<-EOH
               sudo #{node[:deploy][application][:bundle_command]} install
-						EOH
-						action :run
-					end
+            EOH
+            action :run
+          end
         end
 
-        if !system("grep #{application} /etc/monit/monitrc")
-
+        if system("grep #{application} /etc/monit/monitrc")
+          execute "Stopping app #{application}" do
+            cwd       node[:deploy][application][:current_path]
+            command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"
+            user      node[:deploy][application][:user]
+            action    :run
+          end
+        else
           template "/etc/monit/monitrc" do
             source "monitrc.erb"
             cookbook "ruby_app"
@@ -122,13 +128,6 @@ node[:deploy].each do |application, _|
             command   "sudo /etc/init.d/monit restart"
             action    :run
           end
-        end
-
-        execute "Stopping app #{application}" do
-          cwd       node[:deploy][application][:current_path]
-          command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"
-          user      node[:deploy][application][:user]
-          action    :run
         end
 
 			end
