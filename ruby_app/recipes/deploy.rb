@@ -108,14 +108,8 @@ node[:deploy].each do |application, _|
 					end
         end
 
-        if system("grep #{application} /etc/monit/monitrc")
-          execute "Stopping app #{application}" do
-            cwd       node[:deploy][application][:current_path]
-            command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"
-            user      node[:deploy][application][:user]
-            action    :run
-          end
-        else
+        if !system("grep #{application} /etc/monit/monitrc")
+
           template "/etc/monit/monitrc" do
             source "monitrc.erb"
             cookbook "ruby_app"
@@ -126,6 +120,15 @@ node[:deploy].each do |application, _|
 
           execute "Restarting monit" do
             command   "sudo /etc/init.d/monit restart"
+            action    :run
+          end
+        end
+
+        if system("-d /srv/www/#{application}/current")
+          execute "Stopping app #{application}" do
+            cwd       node[:deploy][application][:current_path]
+            command   "#{node[:opsworks][:rack_stack][:bundle_command]} exec ruby #{node[:deploy][application][:current_path]}/bin/#{application}.rb stop"
+            user      node[:deploy][application][:user]
             action    :run
           end
         end
