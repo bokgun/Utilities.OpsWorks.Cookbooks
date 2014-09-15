@@ -8,5 +8,5 @@ end
 
 cron "Log uploader" do
   minute "0"
-  command "./etc/upload.sh"
+  command "/bin/bash /etc/upload.sh"
 end

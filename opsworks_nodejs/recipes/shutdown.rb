@@ -1,4 +1,4 @@
 execute "Upload logs before shutdown" do
-  command "./etc/upload.sh"
+  command "/bin/bash /etc/upload.sh"
   action :run
 end
