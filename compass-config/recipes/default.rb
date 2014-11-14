@@ -3,7 +3,9 @@
 
 bash "install_grunt" do
 	code <<-EOH
-	sudo npm install -g grunt-cli
+	cd /srv/www/compass/current/
+	npm install
+	grunt browserify
 	EOH
 	action :run
 end
