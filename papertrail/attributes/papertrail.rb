@@ -3,11 +3,11 @@
 default['papertrail']['logger'] = "rsyslog"
 
 # Papertrail host to send stats to.
-default['papertrail']['remote_host'] = "logs.papertrailapp.com"
+default['papertrail']['remote_host'] = "logs2.papertrailapp.com"
 
 # Port to use. MUST be set
 # XXX: should pull from a databag since this is private
-default['papertrail']['remote_port'] = nil
+default['papertrail']['remote_port'] = 17929
 
 # Where to store papertrail cert file.
 default['papertrail']['cert_file'] = "/etc/papertrail-bundle.pem"
