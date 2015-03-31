@@ -3,7 +3,7 @@
 
 bash "install_grunt" do
 	code <<-EOH
-	cd /srv/www/compass_web/current/
+	cd /srv/www/compass/current/
 	npm install
 	grunt browserify
 	EOH
