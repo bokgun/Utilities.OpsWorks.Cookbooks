@@ -5,7 +5,7 @@ bash "install_grunt" do
 	code <<-EOH
 	cd /srv/www/compass/current/
 	npm install
-	grunt browserify
+	gulp browserify
 	EOH
 	action :run
 end
