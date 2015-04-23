@@ -3,7 +3,7 @@
 
 bash "install_grunt" do
 	code <<-EOH
-	sudo npm install -g grunt-cli
+	sudo npm install -g gulp
 	EOH
 	action :run
 end
